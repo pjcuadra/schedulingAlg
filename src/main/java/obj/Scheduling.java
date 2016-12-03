@@ -1,4 +1,4 @@
-package utils;
+package obj;
 /**
  * 
  */
@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
-import utils.Runnable;
-
 /**
  * @author pjcuadra
  *
@@ -18,10 +16,16 @@ import utils.Runnable;
 public abstract class Scheduling {
 	
 	protected ArrayList<Task> tasks;
-	private SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge> graph;
+	protected SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge> graph;
+	protected ArrayList<Runnable> toAllocate;
 	
-	public Scheduling(){
+	public Scheduling(SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge> graph){
 		tasks = new ArrayList<Task>();
+		this.graph = graph;
+		
+		toAllocate = new ArrayList<Runnable>();
+		
+		toAllocate.addAll(getGraph().vertexSet());
 	}
 	
 	public abstract void Schedule();
@@ -31,13 +35,6 @@ public abstract class Scheduling {
 	 */
 	public SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge> getGraph() {
 		return graph;
-	}
-
-	/**
-	 * @param graph the graph to set
-	 */
-	public void setGraph(SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge> graph) {
-		this.graph = graph;
 	}
 	
 	public String toString()

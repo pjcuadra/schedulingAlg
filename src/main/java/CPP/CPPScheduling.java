@@ -2,92 +2,107 @@ package CPP;
 
 
 // Java imports
-import java.util.List;
-import java.util.Set;
 
 // JGraphT imports
 import org.jgrapht.graph.DefaultWeightedEdge;
-import org.jgrapht.DirectedGraph;
-import org.jgrapht.GraphPath;
-import org.jgrapht.alg.AllDirectedPaths;
+import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
-// My imports
-import utils.Runnable;
-import utils.Scheduling;
-import utils.Task;
+import obj.Runnable;
+import obj.Scheduling;
+import obj.Task;
+
+import java.util.ArrayList;
+import java.util.Collections;
+
+import org.jgrapht.GraphPath;
+
+import utils.GraphUtils;
 
 public class CPPScheduling extends Scheduling{
 	
-	public GraphPath<Runnable, DefaultWeightedEdge> getCriticalPath(){
-		GraphPath<Runnable, DefaultWeightedEdge> criticalPath = null;
-		
-		// All vertex
-		Set<Runnable> vertex = getGraph().vertexSet();
-				
-		// Try all combinations
-		for (Runnable verSrc: vertex)
-		{
-			for (Runnable verDes: vertex)
-			{
-				for (GraphPath<Runnable, DefaultWeightedEdge> path: getAllPaths(verSrc, verDes))
-				{
-					// For the first time let's use the first path we got
-					if (criticalPath == null)
-					{
-						criticalPath = path;
-						continue;
-					}
-					
-					// For other times get the path with higher weights
-					if (getPathWeigth(criticalPath) < getPathWeigth(path))
-					{
-						criticalPath = path;
-					}
-					
-				}
-			}
-		}
-		
-		return criticalPath;
-	}
+	private GraphPath<Runnable, DefaultWeightedEdge> criticalPath;
 	
-	private double getPathWeigth(GraphPath<Runnable, DefaultWeightedEdge> path)
-	{
-		double weight = 0;
+	public CPPScheduling(SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge> graph) {
+		super(graph);
 		
-		for (Runnable vertex: path.getVertexList())
+		criticalPath = GraphUtils.getCriticalPath(graph);
+		
+		for (Runnable currRun: toAllocate)
 		{
-			weight += vertex.weight;
+			currRun.setInfo(new CPPRunnableInfo(criticalPath));
 		}
-		
-		return weight;
-	}
+	}		
 	
-	private List<GraphPath<Runnable, DefaultWeightedEdge>> getAllPaths(Runnable verSrc, Runnable verDst)
+	private double allocate(Task currTask, Runnable vertex, double startTime)
 	{
-		AllDirectedPaths<Runnable, DefaultWeightedEdge> allPaths = new AllDirectedPaths<Runnable, DefaultWeightedEdge>((DirectedGraph<Runnable, DefaultWeightedEdge>) getGraph());
+		currTask.addRunnable(vertex);
+		vertex.allocate(startTime);
+		toAllocate.remove(vertex);
 		
-		return allPaths.getAllPaths(verSrc, verDst, true, 100);
-	}
-
+		return vertex.weight;
+	}	
+	
 	@Override
 	public void Schedule() {
-		// TODO Auto-generated method stub
-		GraphPath<Runnable, DefaultWeightedEdge> criticalPath = getCriticalPath();
+		double currentTime = 0, criticalPathTime = GraphUtils.getPathWeigth(criticalPath);
+	    ArrayList<Runnable> allocable;
 		Task currTask = null;
 		
 		// Add critical path to first task
-		currTask = new Task("t0");
-		
-		for (Runnable vertex: criticalPath.getVertexList())
-		{
-			currTask.addRunnable(vertex);
-		}
-		
+		currTask = new Task();
 		tasks.add(currTask);
 		
+		// Allocated all vertexes
+		for (Runnable vertex: criticalPath.getVertexList())
+		{
+			currentTime += allocate(currTask, vertex, currentTime);
+		}
+		
+		
 		// Rest of algorithm goes here
-	
+		while (!toAllocate.isEmpty())
+		{
+			currentTime = 0;
+			currTask =  new Task();
+			tasks.add(currTask);
+			
+			while (currentTime < criticalPathTime)
+			{
+				allocable = new ArrayList<Runnable>();
+				
+				for (Runnable currVer: toAllocate)
+				{
+					currVer.updateInfo(graph);
+					
+					// Check if the task is allocable and add it to the list
+					if (currVer.checkRunnability(currentTime))
+					{
+						allocable.add(currVer);
+					}
+				}
+								
+				if (allocable.size() == 0)
+				{
+					// This can be improved
+					currentTime++;
+					continue;
+				}
+				
+				
+				Collections.sort(allocable);
+				
+				if (currentTime + allocable.get(0).weight > criticalPathTime)
+				{
+					break;
+				}
+				
+				currentTime += allocate(currTask, allocable.get(0), currentTime);
+				
+			}
+			
+			
+		}
+		
 		
 		
 	}

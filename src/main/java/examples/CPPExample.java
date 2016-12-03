@@ -4,8 +4,7 @@ import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 import org.jgrapht.graph.DefaultWeightedEdge;
 
 import CPP.CPPScheduling;
-
-import utils.Runnable;
+import obj.Runnable;
 
 public class CPPExample {
 	public static void main(String[] args){	
@@ -14,9 +13,7 @@ public class CPPExample {
 		
 		DefaultWeightedEdge edge;
 						
-		CPPScheduling myCPPScheduler = new CPPScheduling();
-		myCPPScheduler.setGraph(graph);
-		
+				
 		
 		// Initialize graphs nodes (Runnables)
 		Runnable A = new Runnable("A", 1);
@@ -64,9 +61,9 @@ public class CPPExample {
 		edge = graph.addEdge(H, I);
 		graph.setEdgeWeight(edge, 1);
 		
+		CPPScheduling myCPPScheduler = new CPPScheduling(graph);
 		myCPPScheduler.Schedule();
 		
-		System.out.println("Scheduled!");
 		System.out.println(myCPPScheduler);	
 		
 		
