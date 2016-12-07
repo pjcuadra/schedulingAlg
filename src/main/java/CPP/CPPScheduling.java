@@ -1,6 +1,5 @@
 package CPP;
 
-
 // Java imports
 
 // JGraphT imports
@@ -31,8 +30,8 @@ public class CPPScheduling extends Scheduling{
 		{
 			currRun.setInfo(new CPPRunnableInfo(criticalPath));
 		}
-	}		
-	
+	}
+
 	private double allocate(Task currTask, Runnable vertex, double startTime)
 	{
 		currTask.addRunnable(vertex);
@@ -91,9 +90,10 @@ public class CPPScheduling extends Scheduling{
 				
 				Collections.sort(allocable);
 				
+				
 				if (currentTime + allocable.get(0).weight > criticalPathTime)
 				{
-					break;
+			    	break;
 				}
 				
 				currentTime += allocate(currTask, allocable.get(0), currentTime);

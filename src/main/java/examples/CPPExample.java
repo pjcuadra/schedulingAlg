@@ -13,8 +13,6 @@ public class CPPExample {
 		
 		DefaultWeightedEdge edge;
 						
-				
-		
 		// Initialize graphs nodes (Runnables)
 		Runnable A = new Runnable("A", 1);
 		Runnable B = new Runnable("B", 3);

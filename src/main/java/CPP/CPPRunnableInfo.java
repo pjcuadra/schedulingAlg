@@ -25,17 +25,37 @@ public class CPPRunnableInfo extends RunnableInfo implements Comparable<Runnable
 	{
 		return ((earliesInitialTime <= currentTime) && (latestInitialTime >= currentTime));
 	}
-
+	
+	public double getMaxLSP(Runnable startVert, Runnable endVert, SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge> graph)
+	{
+		double LSP = 0;
+		double maxLSP = 0;
+		
+		for (GraphPath<Runnable, DefaultWeightedEdge> path : GraphUtils.getAllPaths(startVert, endVert, graph))
+		{
+			LSP = GraphUtils.getPathWeigth(path);		
+			if (maxLSP < LSP)
+			{
+				maxLSP = LSP;
+			}
+		}	
+		
+		return maxLSP;
+	}
+	
 	@Override
 	public void updateInfo(Runnable vertex, SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge> graph) {
 		
 		double currWeight = 0;
 		
 		earliesInitialTime = 0;
-		latestInitialTime = criticalPathTime;
+		latestInitialTime = 0;
 		
 		for (Runnable currVer: graph.vertexSet())
 		{
+			if (currVer.equals(vertex))
+				continue;
+			
 			// Calculate the earliest initial time
 			/* eit =  max(sum(PrevVertex)) 
 			 * Iterate thru all the paths that end in the vertex 
@@ -51,15 +71,14 @@ public class CPPRunnableInfo extends RunnableInfo implements Comparable<Runnable
 			}
 			
 			// Calculate the latest initial time
-			for (GraphPath<Runnable, DefaultWeightedEdge> path : GraphUtils.getAllPaths(vertex, currVer, graph))
+			if (latestInitialTime < getMaxLSP(vertex, currVer, graph))
 			{
-				currWeight = GraphUtils.getPathWeigthWithAllocations(path);				
-				if (latestInitialTime < (criticalPathTime - currWeight))
-				{
-					latestInitialTime = criticalPathTime - currWeight; 
-				}
+				latestInitialTime = getMaxLSP(vertex, currVer, graph);
 			}
+			
 		}
+		
+		latestInitialTime = criticalPathTime - latestInitialTime;
 	}
 
 	@Override
@@ -77,5 +96,16 @@ public class CPPRunnableInfo extends RunnableInfo implements Comparable<Runnable
 		
 		
 		return lt0.compareTo(lt1);
+	}
+	
+	
+	public String toString(){
+		String info = new String("");
+		
+		info += "eit: " + earliesInitialTime + ", lit: " + latestInitialTime;
+		
+		
+		return info;
+		
 	}
 }

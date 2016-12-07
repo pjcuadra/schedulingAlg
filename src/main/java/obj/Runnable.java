@@ -26,6 +26,9 @@ public class Runnable implements Comparable<Runnable> {
 	
 	public String toString()
 	{
+		if (info != null)
+			return this.name + (int) this.weight + " {" + info.toString() + "}";
+		
 		return this.name + this.weight;
 	}
 	

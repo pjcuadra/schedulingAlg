@@ -16,7 +16,7 @@ public abstract class RunnableInfo implements Comparable<RunnableInfo>{
 	
 	public abstract boolean checkRunnability(double currentTime);
 	public abstract void updateInfo(Runnable vertex, SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge> graph);
-	
+
 	public void allocate(Runnable vertex, double startTime)
 	{
 		this.allocated = true;		
