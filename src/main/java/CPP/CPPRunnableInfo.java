@@ -1,39 +1,63 @@
+/**
+ * @author Pedro Cuadra
+ */
 package CPP;
-
-import org.jgrapht.GraphPath;
-import org.jgrapht.graph.DefaultWeightedEdge;
-import org.jgrapht.graph.SimpleDirectedWeightedGraph;
 
 import obj.Runnable;
 import obj.RunnableInfo;
-import utils.GraphUtils;
+import utils.Graph;
+import utils.Path;
 
 public class CPPRunnableInfo extends RunnableInfo implements Comparable<RunnableInfo> {
-	public double earliesInitialTime;
-	public double latestInitialTime;
-	public double criticalPathTime;
-	
+	/**
+	 * Earliest possible starting time of the runnable
+	 */
+	private double earliesInitialTime;
+	/**
+	 * Latest possible starting time of the runnable
+	 */
+	private double latestInitialTime;
+	/**
+	 * Critical Path execution time
+	 */
+	private double criticalPathTime;
 
-	public CPPRunnableInfo(GraphPath<Runnable, DefaultWeightedEdge> criticalPath)
+	/**
+	 * CPPRunnableInfo Constructor
+	 * 
+	 * @param criticalPath Critical Path of the graph
+	 */
+	public CPPRunnableInfo(Path criticalPath)
 	{
 		earliesInitialTime = 0;
 		latestInitialTime = 0;
-		criticalPathTime = GraphUtils.getPathWeigth(criticalPath);
+		criticalPathTime = criticalPath.getPathCost();
 	}
 		
+	/* (non-Javadoc)
+	 * @see obj.RunnableInfo#checkRunnability(double)
+	 */
 	public boolean checkRunnability(double currentTime)
 	{
 		return ((earliesInitialTime <= currentTime) && (latestInitialTime >= currentTime));
 	}
 	
-	public double getMaxLSP(Runnable startVert, Runnable endVert, SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge> graph)
+	/**
+	 * Calculate the maximum LSP
+	 * 
+	 * @param startVert start vertex of path
+	 * @param endVert   end vertex of path
+	 * @param graph     graph
+	 * @return maximum LSP
+	 */
+	public double getMaxLSP(Runnable startVert, Runnable endVert, Graph graph)
 	{
 		double LSP = 0;
 		double maxLSP = 0;
 		
-		for (GraphPath<Runnable, DefaultWeightedEdge> path : GraphUtils.getAllPaths(startVert, endVert, graph))
+		for (Path path : graph.getAllPaths(startVert, endVert))
 		{
-			LSP = GraphUtils.getPathWeigth(path);		
+			LSP = path.getPathCost();		
 			if (maxLSP < LSP)
 			{
 				maxLSP = LSP;
@@ -43,15 +67,19 @@ public class CPPRunnableInfo extends RunnableInfo implements Comparable<Runnable
 		return maxLSP;
 	}
 	
+	/* (non-Javadoc)
+	 * @see obj.RunnableInfo#updateInfo(obj.Runnable, org.jgrapht.graph.SimpleDirectedWeightedGraph)
+	 */
 	@Override
-	public void updateInfo(Runnable vertex, SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge> graph) {
+	public void updateInfo(Runnable vertex, Graph graph) {
 		
 		double currWeight = 0;
+		double maxLSP = 0;
 		
 		earliesInitialTime = 0;
 		latestInitialTime = 0;
 		
-		for (Runnable currVer: graph.vertexSet())
+		for (Runnable currVer: graph.getAllRunnables())
 		{
 			if (currVer.equals(vertex))
 				continue;
@@ -61,26 +89,30 @@ public class CPPRunnableInfo extends RunnableInfo implements Comparable<Runnable
 			 * Iterate thru all the paths that end in the vertex 
 			 * and get maximum of the paths' weights (taking into 
 			 * account if a node in the path is already allocated. */
-			for (GraphPath<Runnable, DefaultWeightedEdge> path : GraphUtils.getAllPaths(currVer, vertex, graph))
+			for (Path path : graph.getAllPaths(currVer, vertex))
 			{
-				currWeight = GraphUtils.getPathWeigthWithAllocations(path);				
+				currWeight = path.getPathCostWithAllocatedRunnables();				
 				if (earliesInitialTime < currWeight)
 				{
-					earliesInitialTime = currWeight - vertex.weight; 
+					earliesInitialTime = currWeight - vertex.getExecutionCost(); 
 				}
 			}
 			
-			// Calculate the latest initial time
-			if (latestInitialTime < getMaxLSP(vertex, currVer, graph))
+			// Store the max LSP
+			if (maxLSP < getMaxLSP(vertex, currVer, graph))
 			{
-				latestInitialTime = getMaxLSP(vertex, currVer, graph);
+				maxLSP = getMaxLSP(vertex, currVer, graph);
 			}
 			
 		}
 		
-		latestInitialTime = criticalPathTime - latestInitialTime;
+		// Calculate the latest initial time note 
+		latestInitialTime = criticalPathTime - maxLSP;
 	}
 
+	/* (non-Javadoc)
+	 * @see java.lang.Comparable#compareTo(java.lang.Object)
+	 */
 	@Override
 	public int compareTo(RunnableInfo o) {
 		CPPRunnableInfo info = (CPPRunnableInfo) o;
@@ -89,6 +121,9 @@ public class CPPRunnableInfo extends RunnableInfo implements Comparable<Runnable
 		Double eit0 = this.earliesInitialTime;
 		Double eit1 = info.earliesInitialTime;
 		
+		/* If both shifting potentials are equal compare
+		 * the earliest starting time. 
+		 */
 		if (lt0.compareTo(lt1) == 0)
 		{
 			return eit0.compareTo(eit1);
@@ -99,6 +134,9 @@ public class CPPRunnableInfo extends RunnableInfo implements Comparable<Runnable
 	}
 	
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	public String toString(){
 		String info = new String("");
 		

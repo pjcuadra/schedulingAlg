@@ -1,46 +1,77 @@
-package obj;
-/**
- * 
- */
-
-import java.util.ArrayList;
 /**
  * @author Pedro Cuadra
- *
  */
-public class Task {
+package obj;
+
+import java.util.ArrayList;
+
+public class Partition {
 	
+	/**
+	 * Partition's ID
+	 */
 	static int id = 0;
+	/**
+	 * Partition's name
+	 */
 	String name;
+	/**
+	 * Runnables allocated to partition
+	 */
 	ArrayList<Runnable> runnables;
 	
-	public Task() {
+	/**
+	 * Constructor
+	 */
+	public Partition() {
 		runnables = new ArrayList<Runnable>();
-		this.name =  "t" + id;
+		this.name =  "p" + id;
 		id++;
 	}
 	
-	public Task(String name) {
+	/**
+	 * Constructor
+	 * @param name custom name of the partition
+	 */
+	public Partition(String name) {
 		runnables = new ArrayList<Runnable>();
 		this.name = name;
 		id++;
 	}
 	
+	/**
+	 * Set partition's name
+	 * 
+	 * @param name custom name of the partition
+	 */
 	public void setName(String name)
 	{
 		this.name = name;
 	}
 	
+	/**
+	 * Get partition's name
+	 * 
+	 * @return partition's name
+	 */
 	public String getName()
 	{
 		return name;
 	}	
 	
+	/**
+	 * Add runnable to partition
+	 * 
+	 * @param runnable runnable to be added
+	 */
 	public void addRunnable(Runnable runnable)
 	{
 		runnables.add(runnable);
 	}
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	public String toString()
 	{
 		String ret0 = new String();
@@ -76,7 +107,7 @@ public class Task {
 				
 			}
 			
-			for (int o = 0; o < run.weight; o++)
+			for (int o = 0; o < run.getExecutionCost(); o++)
 			{
 				ret1 += " " + run.name + " |";
 				
@@ -88,7 +119,7 @@ public class Task {
 				ret0 += "-+";
 			}
 						
-			emptySpace += run.weight;
+			emptySpace += run.getExecutionCost();
 		}
 				
 		return ret0 + "\n" + ret1 + "\n" + ret0;

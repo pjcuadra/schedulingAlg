@@ -1,76 +1,96 @@
+/**
+ * @author Pedro Cuadra
+ */
 package CPP;
 
-// Java imports
-
-// JGraphT imports
-import org.jgrapht.graph.DefaultWeightedEdge;
-import org.jgrapht.graph.SimpleDirectedWeightedGraph;
-
+// SchedulingAlg
 import obj.Runnable;
 import obj.Scheduling;
-import obj.Task;
+import obj.Partition;
+import utils.Graph;
+import utils.Path;
 
+// Java
 import java.util.ArrayList;
 import java.util.Collections;
 
-import org.jgrapht.GraphPath;
-
-import utils.GraphUtils;
-
 public class CPPScheduling extends Scheduling{
+	/**
+	 * Critical Path
+	 */
+	private Path criticalPath;
 	
-	private GraphPath<Runnable, DefaultWeightedEdge> criticalPath;
-	
-	public CPPScheduling(SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge> graph) {
+	/**
+	 * Constructor
+	 * 
+	 * @param graph graph to be schedule
+	 */
+	public CPPScheduling(Graph graph) {
 		super(graph);
 		
-		criticalPath = GraphUtils.getCriticalPath(graph);
+		// Calculate Critical Path 
+		criticalPath = graph.getCriticalPath();
 		
+		// Assign CPP info to the runnables
 		for (Runnable currRun: toAllocate)
 		{
 			currRun.setInfo(new CPPRunnableInfo(criticalPath));
 		}
 	}
 
-	private double allocate(Task currTask, Runnable vertex, double startTime)
+	/**
+	 * Push a runnable into the current allocating task
+	 * 
+	 * @param currTask current allocating task
+	 * @param vertex runnable to be pushed
+	 * @param startTime execution start time
+	 * @return weight of the allocated runnable
+	 */
+	private double allocate(Partition currTask, Runnable vertex, double startTime)
 	{
 		currTask.addRunnable(vertex);
 		vertex.allocate(startTime);
 		toAllocate.remove(vertex);
 		
-		return vertex.weight;
+		return vertex.getExecutionCost();
 	}	
 	
+	/* (non-Javadoc)
+	 * @see obj.Scheduling#Schedule()
+	 */
 	@Override
 	public void Schedule() {
-		double currentTime = 0, criticalPathTime = GraphUtils.getPathWeigth(criticalPath);
+		double currentTime = 0, criticalPathTime = criticalPath.getPathCost();
 	    ArrayList<Runnable> allocable;
-		Task currTask = null;
+		Partition currTask = null;
 		
 		// Add critical path to first task
-		currTask = new Task();
-		tasks.add(currTask);
+		currTask = new Partition();
+		partition.add(currTask);
 		
 		// Allocated all vertexes
-		for (Runnable vertex: criticalPath.getVertexList())
+		for (Runnable vertex: criticalPath.getAllRunnables())
 		{
 			currentTime += allocate(currTask, vertex, currentTime);
 		}
-		
 		
 		// Rest of algorithm goes here
 		while (!toAllocate.isEmpty())
 		{
 			currentTime = 0;
-			currTask =  new Task();
-			tasks.add(currTask);
+			currTask =  new Partition();
+			partition.add(currTask);
 			
+			// Within Critical Path execution time 
 			while (currentTime < criticalPathTime)
 			{
+				// List of runnables that can be allocated
 				allocable = new ArrayList<Runnable>();
 				
+				// Populate the list of allocable runnables
 				for (Runnable currVer: toAllocate)
 				{
+					// Recalculate EIT and LIT
 					currVer.updateInfo(graph);
 					
 					// Check if the task is allocable and add it to the list
@@ -87,24 +107,23 @@ public class CPPScheduling extends Scheduling{
 					continue;
 				}
 				
-				
+				// Sort the runnables list
 				Collections.sort(allocable);
 				
+				/* 
+				 * If allocating first of the list will cause to exceed
+				 * the critical path execution time then break and create
+				 * a new task.
+				 */
 				
-				if (currentTime + allocable.get(0).weight > criticalPathTime)
+				if (currentTime + allocable.get(0).getExecutionCost() > criticalPathTime)
 				{
 			    	break;
 				}
 				
+				// Allocate first of the list
 				currentTime += allocate(currTask, allocable.get(0), currentTime);
-				
 			}
-			
-			
 		}
-		
-		
-		
 	}
-
 }

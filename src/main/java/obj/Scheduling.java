@@ -1,46 +1,54 @@
-package obj;
 /**
- * 
+ * @author Pedro Cuadra
  */
+package obj;
 
 import java.util.ArrayList;
 
-// JGrapht
-import org.jgrapht.graph.SimpleDirectedWeightedGraph;
-import org.jgrapht.graph.DefaultWeightedEdge;
+import utils.Graph;
 
-/**
- * @author pjcuadra
- *
- */
+
 public abstract class Scheduling {
 	
-	protected ArrayList<Task> tasks;
-	protected SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge> graph;
+	/**
+	 * Scheduling partition
+	 */
+	protected ArrayList<Partition> partition;
+	/**
+	 * Dependencies graph to be scheduled
+	 */
+	protected Graph graph;
+	/**
+	 * Not allocated runnables 
+	 */
 	protected ArrayList<Runnable> toAllocate;
 	
-	public Scheduling(SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge> graph){
-		tasks = new ArrayList<Task>();
+	/**
+	 * Constructor
+	 * 
+	 * @param graph dependencies graph to be scheduled
+	 */
+	public Scheduling(Graph graph){
+		partition = new ArrayList<Partition>();
 		this.graph = graph;
 		
 		toAllocate = new ArrayList<Runnable>();
 		
-		toAllocate.addAll(getGraph().vertexSet());
+		toAllocate.addAll(graph.getAllRunnables());
 	}
 	
-	public abstract void Schedule();
-
 	/**
-	 * @return the graph
+	 * Schedule according to the selected algorithm
 	 */
-	public SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge> getGraph() {
-		return graph;
-	}
+	public abstract void Schedule();
 	
+	/* (non-Javadoc)
+	 * @see java.lang.Object#toString()
+	 */
 	public String toString()
 	{
 		String ret = new String();
-		for (Task task: tasks)
+		for (Partition task: partition)
 		{
 			ret += task.toString() + "\n";
 		}

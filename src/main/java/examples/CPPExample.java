@@ -1,17 +1,18 @@
+/**
+ * This is an example of a runnables graph scheduled using Critical Path Partitioning algorithm
+ *  
+ * @author Pedro Cuadra
+ * @version 0.1
+ */
 package examples;
-
-import org.jgrapht.graph.SimpleDirectedWeightedGraph;
-import org.jgrapht.graph.DefaultWeightedEdge;
 
 import CPP.CPPScheduling;
 import obj.Runnable;
+import utils.Graph;
 
 public class CPPExample {
 	public static void main(String[] args){	
-		SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge> graph = 
-				new SimpleDirectedWeightedGraph<Runnable, DefaultWeightedEdge>(DefaultWeightedEdge.class);
-		
-		DefaultWeightedEdge edge;
+		Graph graph = new Graph();
 						
 		// Initialize graphs nodes (Runnables)
 		Runnable A = new Runnable("A", 1);
@@ -26,47 +27,36 @@ public class CPPExample {
 		Runnable J = new Runnable("J", 4);
 		
 		// Add nodes to graph
-		graph.addVertex(A);
-		graph.addVertex(B);
-		graph.addVertex(C);
-		graph.addVertex(D);
-		graph.addVertex(E);
-		graph.addVertex(F);
-		graph.addVertex(G);
-		graph.addVertex(H);
-		graph.addVertex(I);
-		graph.addVertex(J);
+		graph.addRunnable(A);
+		graph.addRunnable(B);
+		graph.addRunnable(C);
+		graph.addRunnable(D);
+		graph.addRunnable(E);
+		graph.addRunnable(F);
+		graph.addRunnable(G);
+		graph.addRunnable(H);
+		graph.addRunnable(I);
+		graph.addRunnable(J);
 		
-		// Add dependencies
-		edge = graph.addEdge(A, E);
-		graph.setEdgeWeight(edge, 1);
-		edge = graph.addEdge(B, F);
-		graph.setEdgeWeight(edge, 1);
-		edge = graph.addEdge(B, G);
-		graph.setEdgeWeight(edge, 1);
-		edge = graph.addEdge(B, J);
-		graph.setEdgeWeight(edge, 1);
-		edge = graph.addEdge(C, H);
-		graph.setEdgeWeight(edge, 1);
-		edge = graph.addEdge(D, J);
-		graph.setEdgeWeight(edge, 1);
-		edge = graph.addEdge(E, H);
-		graph.setEdgeWeight(edge, 1);
-		edge = graph.addEdge(F, I);
-		graph.setEdgeWeight(edge, 1);
-		edge = graph.addEdge(G, I);
-		graph.setEdgeWeight(edge, 1);
-		edge = graph.addEdge(H, I);
-		graph.setEdgeWeight(edge, 1);
+		// Add dependencies with no communication cost
+		graph.addDependency(A, E);
+		graph.addDependency(B, F);
+		graph.addDependency(B, G);
+		graph.addDependency(B, J);
+		graph.addDependency(C, H);
+		graph.addDependency(D, J);
+		graph.addDependency(E, H);
+		graph.addDependency(F, I);
+		graph.addDependency(G, I);
+		graph.addDependency(H, I);
 		
+		// Create the CPP scheduling class based on the graph
 		CPPScheduling myCPPScheduler = new CPPScheduling(graph);
+		
+		// Schedule the graph
 		myCPPScheduler.Schedule();
 		
+		// Print out the results
 		System.out.println(myCPPScheduler);	
-		
-		
 	}
-	
-
-	
 }
